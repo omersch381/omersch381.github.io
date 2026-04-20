@@ -1,7 +1,7 @@
 {
-  "name": "John Doe",
-  "bio": "John is a designer, photographer, speaker, author of a couple of books about typography and the founder of photo magazine Curious.",
-  "url": "https://justgoodthemes.com",
-  "location": "Vilnius, Lithuania",
-  "image": "images/author.png"
+  "name": "Omer Schwartz",
+  "bio": "Omer is a software engineer and currently PTL of Designate, the DNS-as-a-Service project in OpenStack.",
+  "url": "https://github.com/omersch381",
+  "location": "",
+  "image": ""
 }

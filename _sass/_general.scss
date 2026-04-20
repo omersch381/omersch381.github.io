@@ -253,18 +253,18 @@ video {
 @media only screen and (min-width: 851px) {
   .width-full img,
   .width-wide img {
-    margin-left: calc(425px - 50vw);
-    margin-right: calc(425px - 50vw);
-    max-width: none;
-    width: calc(100vw - 90px);
+    margin-left: 0;
+    margin-right: 0;
+    max-width: 100%;
+    width: 100%;
   }
 }
 
 @media only screen and (min-width: 971px) {
   .width-wide img {
-    margin-left: -60px;
-    margin-right: -60px;
-    width: 880px;
+    margin-left: 0;
+    margin-right: 0;
+    width: 100%;
   }
 }
 
