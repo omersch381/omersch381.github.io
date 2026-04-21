@@ -9,9 +9,19 @@ tags: [openstack, designate, claude-code, mcp, ai]
 
 I am Omer Schwartz, currently [Designate](https://docs.openstack.org/designate/latest/) PTL, which is the DNS-as-a-Service project of OpenStack. At the start of Q4 2025, I decided to tackle an issue the upstream community accumulated over the years: the Launchpad bug backlog had grown unwieldy. Bugs dating back to 2015 — some marked high or critical priority — were piling up, many sitting in "New" or "Confirmed" for years with no one triaging them. Some of them were already fixed, but not updated in Launchpad. Community patches fixing some of those bugs were scattered across four repositories with no clear prioritization.
 
-Over the next two quarters (2025Q4 and 2026Q1), I started to systematically reduce this backlog. The tooling I built with Claude Code's MCP servers and custom slash commands (skilled agents) turned what would have been months of tedious context-switching into a focused, efficient effort. Here's how.
+Over the next two quarters (2025Q4 and 2026Q1), I systematically reduced this backlog. The tooling I built with Claude Code's MCP servers and custom slash commands (skilled agents) turned what would have been months of tedious context-switching into a focused, efficient effort.
 
 <!--more-->
+
+## The Results
+
+Addressing a bug here means either submitting a fix for review on Gerrit, or closing it after triage (duplicates, already fixed upstream, or obsolete). Many of the submitted fixes are still awaiting review due to limited reviewer capacity — the investigation and fix work is done, but the Launchpad status may still show "In Progress" until the patch merges.
+
+**Q4 2025** — Starting point: **156 open bugs**. By the end of the quarter, 40 bugs were addressed (**26%**): 28 had fixes submitted for review and 13 were closed after triage.
+
+**Q1 2026** — Starting point: **116 open bugs**, plus 10 new bugs opened during the quarter (126 total). 42 bugs were addressed (**33%**): 17 fixed and 25 closed after triage. Similar triage and fix efforts were carried out in python-designateclient and designate-dashboard as well.
+
+**Across both quarters**, the backlog went from 156 to 84 open bugs — a **46% reduction**.
 
 ## The Backlog Problem
 
