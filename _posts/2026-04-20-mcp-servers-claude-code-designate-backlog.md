@@ -27,7 +27,7 @@ Addressing a bug here means either submitting a fix for review on Gerrit, or clo
 
 ## The Backlog Problem
 
-Designate's Launchpad tracker tells the story in numbers. Before the effort began, there were well over 100 open bugs across all states -- 24 in "New" (many untriaged, with "Undecided" importance), 12 in "Confirmed", 60 in "In Progress", 8 in "Triaged" -- spanning nearly a decade of reports. Many "In Progress" bugs had been sitting there for years with no actual progress.
+Designate's Launchpad tracker tells the story in numbers. Before the effort began, there were well over 100 open bugs across all states -- 24 in "New" (many untriaged, with "Undecided" importance), 12 in "Confirmed", 60 in "In Progress", 8 in "Triaged" -- spanning years of reports. Many "In Progress" bugs had been sitting there for years with no actual progress.
 
 The work wasn't just about writing fixes. It involved:
 
@@ -104,7 +104,7 @@ Every bug fix needs to pass tests and linters before it can be submitted. The to
 
 The MCP servers provide individual tools. The real leverage came from composing them into multi-step workflows using Claude Code's custom slash commands. I'm still exploring what's possible here and probably have a lot more to learn, but even these early skills have already proven their value.
 
-### `/lint` - Pre-Commit Quality Gate
+### `/lint` - Context-Aware Pre-Commit Quality Gate
 
 The linting step needs to be fast. This skill runs multiple checks, but (hopefully) only what's needed:
 
