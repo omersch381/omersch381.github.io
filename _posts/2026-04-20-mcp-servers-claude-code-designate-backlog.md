@@ -1,17 +1,19 @@
 ---
 layout: post
 title: "How I Used MCP Servers and Claude Code to Tackle Designate's Bug Backlog"
-description: "Building MCP servers and skilled agents to eliminate context-switching across Launchpad, Gerrit, DevStack, and tox — and systematically reduce a decade-old bug backlog."
+description: "Building MCP servers and skilled agents to eliminate context-switching across Launchpad, Gerrit, DevStack, and tox — and systematically reduce Designate's bug backlog."
 date: 2026-04-20
 feature_image: images/Bugs_cleaning.png
 tags: [openstack, designate, claude-code, mcp, ai]
 ---
 
-I am Omer Schwartz, currently [Designate](https://docs.openstack.org/designate/latest/) PTL, which is the DNS-as-a-Service project of OpenStack. At the start of Q4 2025, I decided to tackle an issue the upstream community accumulated over the years: the Launchpad bug backlog had grown unwieldy. Bugs dating back to 2015 — some marked high or critical priority — were piling up, many sitting in "New" or "Confirmed" for years with no one triaging them. Some of them were already fixed, but not updated in Launchpad. Community patches fixing some of those bugs were scattered across four repositories with no clear prioritization.
+I am Omer Schwartz, currently Project Team Lead (PTL) of [Designate](https://docs.openstack.org/designate/latest/), OpenStack's DNS-as-a-Service project. As a PTL, my responsibilities include setting the project's technical direction, coordinating releases, shepherding code reviews, and maintaining the bug backlog. That last one — backlog maintenance — is the focus of this post.
 
-Over the next two quarters (2025Q4 and 2026Q1), I systematically reduced this backlog. The tooling I built with Claude Code's MCP servers and custom slash commands (skilled agents) turned what would have been months of tedious context-switching into a focused, efficient effort.
+A bug backlog that grows unchecked over time has a compounding effect. When untriaged reports pile up and issues sit in "In Progress" with no visible movement, the tracker starts to feel unreliable. Users and operators are less likely to file detailed reports if it's not clear that existing ones are being looked at, and contributors may hesitate to pick up bugs when there's no prioritization to guide them. Over time, an unmaintained backlog can quietly erode trust in the project's responsiveness.
 
-<!--more-->
+Designate's Launchpad tracker had reached that point. Over 150 open bugs across all states, many untouched for years — some marked high or critical priority, some already fixed upstream but never updated in Launchpad. Community patches fixing some of those bugs were scattered across four repositories with no clear prioritization.
+
+Over two quarters (2025Q4 and 2026Q1), I systematically reduced this backlog. The tooling I built with Claude Code's MCP servers and custom slash commands (skilled agents) saved significant time and money by eliminating the constant context-switching between Launchpad, Gerrit, SSH sessions, and local testing.
 
 ## The Results
 
@@ -41,6 +43,8 @@ Each of these steps touched different systems: Launchpad for bugs, Gerrit for pa
 ## The Solution: MCP Servers + Skilled Agents
 
 I built four MCP servers to bring all of these systems into Claude Code, and three slash-command skills that compose them into multi-step workflows. The total code is under 900 lines of Python. Obviously Claude Code did most of the coding :)
+
+Before I had MCP servers, every session with Claude involved a discovery phase: it would try a `curl` command against the Launchpad or Gerrit API, get the response format wrong, adjust, try again — sometimes taking several attempts before landing on the right query. Claude started fresh each session, and even with guidance it spent a meaningful chunk of tokens just figuring out how to talk to these services. Multiply that by dozens of bugs across several APIs, and the token cost would have added up fast. With the MCP servers properly configured, Claude calls the right tool with the right parameters on the first try. No fumbling, no retries, no wasted context. The token savings alone made the investment in writing these servers worthwhile.
 
 ### The Launchpad MCP Server: Bug Fetching at Scale
 
@@ -109,29 +113,7 @@ The linting step needs to be fast. This skill runs multiple checks, but (hopeful
 - **Docs and api-ref** checks only run if documentation files were modified.
 - **Repository style checks** catch Designate-specific violations that flake8 doesn't enforce.
 
-Here are additional experiments with skilled agents:
-
-### `/update-review-priority-list` - The Backlog Command Center
-
-This skill maintains a prioritized list of all open patches across four Designate repositories, currently tracking 100+ patches.
-
-Before building this, I maintained the priority list using Go scripts that queried the Gerrit API, generated a flat list, and required either manual sorting or manual tagging followed by automated sorting. The Claude Code skill replaced all of that with a command that:
-
-1. Fetches the current release cycle name
-2. Queries every open patch across `openstack/designate`, `openstack/python-designateclient`, `openstack/designate-dashboard`, and `openstack/designate-tempest-plugin`
-3. Removes merged and abandoned patches
-4. Discovers new patches not yet in the list
-5. Cross-references `@skip_because(bug=...)` decorators in tempest tests with patches that fix those bugs
-6. Builds a dependency map from `Depends-On:` headers between patches
-7. Categorizes patches into priority groups: features first, then CI-unblocking, then bugfixes, then "regular" ones
-
-The cross-referencing in step 5 was particularly valuable: when a patch both closes a bug and unblocks a skipped tempest test, that's triple impact per review — exactly the kind of prioritization that makes a backlog effort efficient.
-
-The skill uses `mcp__gerrit__get_patch` and `mcp__gerrit__search_patches` heavily, parallelizing queries using Claude Code's Agent tool with the cheaper Haiku model. The main Opus model orchestrates the workflow and makes judgment calls (prioritization, categorization), while Haiku agents handle the 20+ parallel API queries. This saves meaningful tokens on what is largely mechanical data fetching.
-
-### `/verify-release` - Release Verification
-
-At the end of each release cycle, the Release Management team proposes a release patch in the `openstack/releases` repository. This skill verifies that the commit hashes in that patch match the actual branch tips, and lists any open patches still under review that won't make it into the release if we approve it as-is. It saves some manual verification work.
+I also built skills for review prioritization and release verification, which I plan to cover in a future post.
 
 ## Back to the Backlog: What Worked Well
 
@@ -143,8 +125,6 @@ At the end of each release cycle, the Release Management team proposes a release
 
 ## What Could Be Better
 
-1. **Caching**: The priority list skill queries 100+ patches one at a time. A short-lived cache (even 5 minutes) for patch metadata would cut latency and context / tokens significantly.
+1. **Tox runner portability**: The tox runner MCP server is currently hardcoded to the Designate repository. Ideally it would run against whatever the current working directory is, so it could be reused across the other Designate repositories without modification.
 
-2. **Tox runner portability**: The tox runner MCP server is currently hardcoded to the Designate repository. Ideally it would run against whatever the current working directory is, so it could be reused across the other Designate repositories without modification.
-
-3. **Multi-VM support**: The DevStack MCP server is hardcoded to one VM. Testing multipool and grenade upgrade scenarios sometimes needs different VMs, and making the target configurable per-session would help.
+2. **Multi-VM support**: The DevStack MCP server is hardcoded to one VM. Testing multipool and grenade upgrade scenarios sometimes needs different VMs, and making the target configurable per-session would help.
